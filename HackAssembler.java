@@ -70,10 +70,14 @@ class HackAssembler {
                 return binaryAddress;
             case 'C':
                 // code for converting C-type instructions
-                String[] cInst = splitString(input);
-                System.out.println(cInst[0]);
-                System.out.println(cInst[1]);
-                System.out.println(cInst[2]);
+                // initialize an array to hold our split string
+                String[] cInst = splitCInst(input);
+                // cInst[0] = dest
+                // cInst[1] = comp
+                // cInst[2] = jump
+                System.out.println("comp = " + cInst[0]);
+                System.out.println("dest = " + cInst[1]);
+                System.out.println("jump = " + cInst[2]);
                 break;
             default:
                 System.out.println("Unknown instruction type");
@@ -83,8 +87,18 @@ class HackAssembler {
         return machineCode;
     }
 
-    private static String[] splitString(String input) {
-        return input.split("=" + "|" + ";");
+    private static String[] splitCInst(String input) {
+        String[] output = input.split("=[;=]*");
+        while(output.length < 3) {
+            output = extendArray(output);
+        }
+        return output;
+    }
+
+    private static String[] extendArray(String[] array) {
+        String[] newArray = new String[array.length + 1];
+        System.arraycopy(array, 0, newArray, 0, array.length);
+        return newArray;
     }
 
     private static boolean isWhiteSpace(String input) {
