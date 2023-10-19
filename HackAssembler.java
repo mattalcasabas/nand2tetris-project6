@@ -38,19 +38,35 @@ class HackAssembler {
     }
 
     public static String convertToMachineCode(String input) {
-        String machineCode = null;
-        char commandType = null;
+        char instType = null;
+        String opcode = null;
+
+        // if the line is a comment
         if (input.startsWith("//")) {
             return null;
         }
+        // if the line is an A-instruction
         else if (input.startsWith("@")) {
-            commandType = 'A';
+            instType = 'A';
+            opcode = "000";
         }
         else if (input.startWith("")) {
-            
+
         }
 
-        return machineCode;
+        switch(instType) {
+            case 'A':
+                // code for converting A-type instructions
+                break;
+            case 'C':
+                // code for converting C-type instructions
+                break;
+            default:
+                System.out.println("Unknown instruction type");
+                System.exit(1);
+        }
+
+        return null;
     }
 
     public static void writeOutputLine(String line, String output) {
