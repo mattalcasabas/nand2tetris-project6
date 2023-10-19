@@ -38,35 +38,60 @@ class HackAssembler {
     }
 
     public static String convertToMachineCode(String input) {
-        char instType = null;
+        char instType;
         String opcode = null;
+        String machineCode = null;
 
         // if the line is a comment
-        if (input.startsWith("//")) {
+        if (isWhiteSpace(input)) {
             return null;
         }
         // if the line is an A-instruction
         else if (input.startsWith("@")) {
             instType = 'A';
-            opcode = "000";
         }
-        else if (input.startWith("")) {
-
+        // if the line is a C-instruction
+        else {
+            instType = 'C';
         }
 
         switch(instType) {
             case 'A':
                 // code for converting A-type instructions
-                break;
+                String[] aInst = input.split("@");
+                // separate the instruction into an array:
+                // aInst[0] = null, aInst[1] = memory address
+                int memAddress = Integer.parseInt(aInst[1]);
+                String binaryAddress = Integer.toBinaryString(memAddress);
+                // after converting address to binary, pad with 0s
+                while(binaryAddress.length() < 16) {
+                    binaryAddress = "0" + binaryAddress;
+                }
+                return binaryAddress;
             case 'C':
                 // code for converting C-type instructions
+                String[] cInst = splitString(input);
+                System.out.println(cInst[0]);
+                System.out.println(cInst[1]);
+                System.out.println(cInst[2]);
                 break;
             default:
                 System.out.println("Unknown instruction type");
                 System.exit(1);
         }
 
-        return null;
+        return machineCode;
+    }
+
+    private static String[] splitString(String input) {
+        return input.split("=" + "|" + ";");
+    }
+
+    private static boolean isWhiteSpace(String input) {
+        if(input.startsWith("//")) {
+            return true;
+        }
+        return false;
     }
 
     public static void writeOutputLine(String line, String output) {
@@ -74,7 +99,9 @@ class HackAssembler {
 
         try {
             writer = new BufferedWriter(new FileWriter(output, true));
-            writer.write(line);
+            if(line != null) {
+                writer.write(line);
+            }
             writer.close();
 
         } catch (IOException e) {
