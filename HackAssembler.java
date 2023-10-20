@@ -25,7 +25,7 @@ class HackAssembler {
             String line = reader.readLine();
 
             while (line != null) {
-                System.out.println(line);
+                //System.out.println(line);
                 writeOutputLine(convertToMachineCode(line), output);
                 // read next line
                 line = reader.readLine();
@@ -75,37 +75,202 @@ class HackAssembler {
                 // cInst[0] = dest
                 // cInst[1] = comp
                 // cInst[2] = jump
-                System.out.println("comp = " + cInst[0]);
-                System.out.println("dest = " + cInst[1]);
-                System.out.println("jump = " + cInst[2]);
-                break;
+                String dest = parseDest(cInst[0]);
+                String comp = parseComp(cInst[1]);
+                String jump = parseJump(cInst[2]);
+                return ("111" + comp + dest + jump);
             default:
                 System.out.println("Unknown instruction type");
                 System.exit(1);
-        }
-
-        return machineCode;
+        }   
+        return null;        
     }
 
-    private static String[] splitCInst(String input) {
-        String[] output = input.split("=[;=]*");
-        while(output.length < 3) {
-            output = extendArray(output);
-        }
-        return output;
-    }
+    private static String[] splitCInst(String phrase) {
+        String[] parts = new String[3];
 
-    private static String[] extendArray(String[] array) {
-        String[] newArray = new String[array.length + 1];
-        System.arraycopy(array, 0, newArray, 0, array.length);
-        return newArray;
+        // Split the phrase using '=' as a delimiter
+        String[] splitByEqual = phrase.split("=", 2);
+
+        if (splitByEqual.length == 2) {
+            // '=' found, set the first part to the part before '=', the second part to the part between '=', and ';'
+            parts[0] = splitByEqual[0];
+            String[] splitBySemicolon = splitByEqual[1].split(";", 2);
+            parts[1] = splitBySemicolon[0];
+            parts[2] = splitBySemicolon.length > 1 ? splitBySemicolon[1] : "";
+        } else {
+            // No '=', set the second and third parts to empty strings
+            parts[0] = "";
+            String[] splitBySemicolon = phrase.split(";", 2);
+            parts[1] = splitBySemicolon[0];
+            parts[2] = splitBySemicolon.length > 1 ? splitBySemicolon[1] : "";
+        }
+
+        return parts;
     }
 
     private static boolean isWhiteSpace(String input) {
-        if(input.startsWith("//")) {
+        if(input.startsWith("//") || input.isEmpty()) {
             return true;
         }
         return false;
+    }
+
+    private static String parseComp(String input) {
+        //System.out.println("comp = " + input);
+        String aBit = null;
+        String cBits = null;
+        // compute aBit
+        if(input.contains("M")) {
+            aBit = "1";
+        }
+        else {
+            aBit = "0";
+        }
+
+        // compute cBits
+        switch(input) {
+            case "0":
+                cBits = "101010";
+                break;
+            case "1":
+                cBits = "111111";
+                break;
+            case "-1":
+                cBits = "111010";
+                break;
+            case "D":
+                cBits = "001100";
+                break;
+            case "A":
+            case "M":
+                cBits = "110000";
+                break;
+            case "!D":
+                cBits = "001101";
+                break;
+            case "!A":
+            case "!M":
+                cBits = "110001";
+                break;
+            case "-D":
+                cBits = "001111";
+                break;
+            case "-A":
+            case "-M":
+                cBits = "110011";
+                break;
+            case "D+1":
+                cBits = "011111";
+                break;
+            case "A+1":
+            case "M+1":
+                cBits = "110111";
+                break;
+            case "D-1":
+                cBits = "001110";
+                break;
+            case "A-1":
+            case "M-1":
+                cBits = "110010";
+                break;
+            case "D+A":
+            case "D+M":
+                cBits = "000010";
+                break;
+            case "D-A":
+            case "D-M":
+                cBits = "010011";
+                break;
+            case "A-D":
+            case "M-D":
+                cBits = "000111";
+                break;
+            case "D&A":
+            case "D&M":
+                cBits = "000000";
+                break;
+            case "D|A":
+            case "D|M":
+                cBits = "010101";
+                break;
+            default:
+                cBits = "000000";
+                break;
+        }  
+        //System.out.println("aBit = " + aBit);
+        //System.out.println("cBits = " + cBits);
+        return (aBit + cBits);
+        
+    }
+
+    private static String parseDest(String input) {
+        //System.out.println("dest = " + input);
+        String dBits = null;
+        if(input == null || input == "") {
+            dBits = "000";
+        }
+        else {
+            switch(input) {
+                case "M":
+                    dBits = "001";
+                    break;
+                case "D":
+                    dBits = "010";
+                    break;
+                case "MD":
+                    dBits = "011";
+                    break;
+                case "A":
+                    dBits = "100";
+                    break;
+                case "AM":
+                    dBits = "101";
+                    break;
+                case "AD":
+                    dBits = "110";
+                    break;
+                case "AMD":
+                    dBits = "111";
+                    break;
+            }
+        }
+        return dBits;
+    }
+
+    private static String parseJump(String input) {
+        //System.out.println("jump = " + input);
+        String jBits = null;
+        if(input == null || input == "") {
+            jBits = "000";
+        }
+        else {
+            switch(input) {
+                case "JGT":
+                    jBits = "001";
+                    break;
+                case "JEQ":
+                    jBits = "010";
+                    break;
+                case "JGE":
+                    jBits = "011";
+                    break;
+                case "JLT":
+                    jBits = "100";
+                    break;
+                case "JNE":
+                    jBits = "101";
+                    break;
+                case "JLE":
+                    jBits = "110";
+                    break;
+                case "JMP":
+                    jBits = "111";
+                    break;
+            }
+        }
+        
+        return jBits;
     }
 
     public static void writeOutputLine(String line, String output) {
@@ -115,6 +280,7 @@ class HackAssembler {
             writer = new BufferedWriter(new FileWriter(output, true));
             if(line != null) {
                 writer.write(line);
+                writer.newLine();
             }
             writer.close();
 
