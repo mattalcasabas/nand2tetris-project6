@@ -6,10 +6,13 @@ import java.io.IOException;
 import java.util.HashMap;
 
 class HackAssemblerWithSymbols {
+    private static Integer currentMemAddr;
+
     public static void main(String[] args) {
         if(args.length == 2) {
             String inputFile = args[0];
             String outputFile = args[1];
+            currentMemAddr = 16;
             HashMap<String, Integer> symbolTable = new HashMap<>();
             inputPredefinedSymbols(symbolTable);
             readLabelSymbols(symbolTable, inputFile);
@@ -47,6 +50,15 @@ class HackAssemblerWithSymbols {
         symbolTable.put("THAT", 4);
     }
 
+    public static void incrementCurrentMemAddr() {
+        currentMemAddr++;
+    }
+
+    public static Integer getCurrentMemAddr() {
+        return currentMemAddr;
+    }
+
+
     public static void readLabelSymbols(HashMap<String, Integer> symbolTable, String input) {
         BufferedReader reader;
         try {
@@ -55,14 +67,17 @@ class HackAssemblerWithSymbols {
             int lineNumber = 0;
 
             while (line != null) {
-                //System.out.println(line);
+                line = line.trim();
+                if(!isWhiteSpace(line) && !input.startsWith("(")) {
+                    lineNumber++;
+                }
+                System.out.println("Line " + lineNumber + ": " + line);
                 if(line.startsWith("(")) {
                     String label = line.replaceAll("[()]", "");
                     symbolTable.put(label, lineNumber);
                 }
                 // read next line
                 line = reader.readLine();
-                lineNumber++;
             }
 
             reader.close();
@@ -73,7 +88,6 @@ class HackAssemblerWithSymbols {
 
     public static void processInputFile(HashMap<String, Integer> symbolTable, String input, String output) {
         BufferedReader reader;
-        int n = 16;
 
         try {
             reader = new BufferedReader(new FileReader(input));
@@ -81,7 +95,7 @@ class HackAssemblerWithSymbols {
 
             while (line != null) {
                 //System.out.println(line);
-                writeOutputLine(convertToMachineCode(line, n, symbolTable), output);
+                writeOutputLine(convertToMachineCode(line, symbolTable), output);
                 // read next line
                 line = reader.readLine();
             }
@@ -92,9 +106,8 @@ class HackAssemblerWithSymbols {
         }
     }
 
-    public static String convertToMachineCode(String input, int n, HashMap<String, Integer> symbolTable) {
+    public static String convertToMachineCode(String input, HashMap<String, Integer> symbolTable) {
         char instType;
-        String opcode = null;
         String machineCode = null;
 
         // if the line is a comment
@@ -125,9 +138,9 @@ class HackAssemblerWithSymbols {
                     }
                     else {
                         String label = aInst[1];
-                        symbolTable.put(label, n);
-                        memAddress = n;
-                        n++;
+                        symbolTable.put(label, getCurrentMemAddr());
+                        memAddress = getCurrentMemAddr();
+                        incrementCurrentMemAddr();
                     }
                 }
                 String binaryAddress = Integer.toBinaryString(memAddress);
@@ -154,10 +167,6 @@ class HackAssemblerWithSymbols {
         return null;        
     }
 
-    private static void replaceLabelWithInt() {
-
-    }
-
     private static String[] splitCInst(String phrase) {
         String[] parts = new String[3];
 
@@ -182,14 +191,17 @@ class HackAssemblerWithSymbols {
     }
 
     private static boolean isWhiteSpace(String input) {
-        if(input.startsWith("//") || input.isEmpty()) {
+        if(input.startsWith("//") || input.isEmpty() || input.startsWith("(")) {
             return true;
         }
         return false;
     }
 
     private static String parseComp(String input) {
-        //System.out.println("comp = " + input);
+        if(input != null) {
+            input = input.replaceAll("\\s", "");
+        }
+        System.out.println("comp = " + input);
         String aBit = null;
         String cBits = null;
         // compute aBit
@@ -277,7 +289,10 @@ class HackAssemblerWithSymbols {
     }
 
     private static String parseDest(String input) {
-        //System.out.println("dest = " + input);
+        if(input != null) {
+            input = input.replaceAll("\\s", "");
+        }
+        System.out.println("dest = " + input);
         String dBits = null;
         if(input == null || input == "") {
             dBits = "000";
@@ -311,7 +326,10 @@ class HackAssemblerWithSymbols {
     }
 
     private static String parseJump(String input) {
-        //System.out.println("jump = " + input);
+        if(input != null) {
+            input = input.replaceAll("\\s", "");
+        }
+        System.out.println("jump = " + input);
         String jBits = null;
         if(input == null || input == "") {
             jBits = "000";
